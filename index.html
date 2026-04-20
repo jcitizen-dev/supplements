@@ -11,9 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0e0e0f;
-    --surface: #1a1a1c;
-    --surface2: #242426;
+    --bg: #1c1c1e;
+    --surface: #2c2c2e;
+    --surface2: #3a3a3c;
     --border: rgba(255,255,255,0.08);
     --text: #f0f0ee;
     --muted: rgba(240,240,238,0.45);
@@ -66,7 +66,7 @@
   .reset-btn:active { background: var(--surface2); }
 
 /* BOTTOM NAV */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(14,14,15,0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(28,28,30,0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .nav-btn { flex: 1; padding: 14px 0; background: transparent; border: none; color: rgba(240,240,238,0.45); font-family: ‘DM Mono’, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
 .nav-btn.active { color: #c8f542; }
 
@@ -74,7 +74,7 @@
 #log-view { display: none; }
 .log-month { margin-bottom: 28px; }
 .log-month-label { font-family: ‘DM Mono’, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(240,240,238,0.45); margin-bottom: 12px; }
-.log-day { background: #1a1a1c; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; overflow: hidden; }
+.log-day { background: #2c2c2e; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; overflow: hidden; }
 .log-day-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; cursor: pointer; }
 .log-day-left { display: flex; align-items: center; gap: 10px; }
 .log-day-name { font-size: 14px; font-weight: 500; color: #f0f0ee; }
