@@ -66,9 +66,9 @@
   .reset-btn:active { background: var(--surface2); }
 
 /* BOTTOM NAV */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(14,14,15,0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(–border); padding-bottom: var(–safe-bottom); }
-.nav-btn { flex: 1; padding: 14px 0; background: transparent; border: none; color: var(–muted); font-family: ‘DM Mono’, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
-.nav-btn.active { color: var(–accent); }
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; background: rgba(14,14,15,0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.08); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.nav-btn { flex: 1; padding: 14px 0; background: transparent; border: none; color: rgba(240,240,238,0.45); font-family: ‘DM Mono’, monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+.nav-btn.active { color: #c8f542; }
 
 /* LOG */
 #log-view { display: none; }
@@ -324,71 +324,111 @@ function render() {
 }
 
 // --- Render log ---
-async function renderLog() {
-  const allKeys = await storeAll();
+function renderLog() {
+  const c = document.getElementById('log-content');
+  const sub = document.getElementById('log-subtitle');
+  c.innerHTML = '';
+
+  // Use in-memory checked set directly — always up to date
   const byDate = {};
-  (allKeys||[]).forEach(k => {
-    const parts = String(k).split('|');
-    if (parts.length<3) return;
-    const ds=parts[1], item=parts.slice(2).join('|');
-    if (!byDate[ds]) byDate[ds]=new Set();
+  checked.forEach(k => {
+    const parts = k.split('|');
+    if (parts.length < 3) return;
+    const ds = parts[1], item = parts.slice(2).join('|');
+    if (!byDate[ds]) byDate[ds] = new Set();
     byDate[ds].add(item);
   });
 
-  const dates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-  document.getElementById('log-subtitle').textContent = dates.length+' day'+(dates.length!==1?'s':'')+' logged';
+  const dates = Object.keys(byDate).sort((a,b) => b.localeCompare(a));
+  sub.textContent = dates.length + ' day' + (dates.length !== 1 ? 's' : '') + ' logged';
 
-  const c=document.getElementById('log-content'); c.innerHTML='';
   if (!dates.length) {
-    const e=document.createElement('div'); e.className='log-empty'; e.textContent='no entries yet — start checking off today'; c.appendChild(e); return;
+    c.innerHTML = '<p style="color:#f0f0ee;text-align:center;padding:48px 16px;font-size:13px;font-family:\'DM Mono\',monospace;letter-spacing:0.06em;">no entries yet</p>';
+    return;
   }
 
   // Group by month
-  const byMonth={};
+  const byMonth = {};
   dates.forEach(ds => {
-    const d=parseDateStr(ds);
-    const mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    if(!byMonth[mk]) byMonth[mk]=[];
+    const d = parseDateStr(ds);
+    const mk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if (!byMonth[mk]) byMonth[mk] = [];
     byMonth[mk].push(ds);
   });
 
-  Object.keys(byMonth).sort((a,b)=>b.localeCompare(a)).forEach(mk => {
-    const [y,m]=mk.split('-');
-    const monthLabel=new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    const monthEl=document.createElement('div'); monthEl.className='log-month';
-    const mlbl=document.createElement('div'); mlbl.className='log-month-label'; mlbl.textContent=monthLabel; monthEl.appendChild(mlbl);
+  Object.keys(byMonth).sort((a,b) => b.localeCompare(a)).forEach(mk => {
+    const [y,m] = mk.split('-');
+    const monthLabel = new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+    const monthEl = document.createElement('div');
+    monthEl.style.cssText = 'margin-bottom:28px;';
+
+    const mlbl = document.createElement('div');
+    mlbl.style.cssText = 'font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(240,240,238,0.45);margin-bottom:12px;';
+    mlbl.textContent = monthLabel;
+    monthEl.appendChild(mlbl);
 
     byMonth[mk].forEach(ds => {
-      const d=parseDateStr(ds);
-      const dayName=DAYS[d.getDay()];
-      const sched=SCHEDULE[dayName]||[];
-      const taken=byDate[ds];
-      const takeable=sched.flatMap(s=>s.items.filter(it=>!s.skip.includes(it)));
-      const doneCount=takeable.filter(it=>taken.has(it)).length;
-      const total=takeable.length;
-      const pct=total?Math.round(doneCount/total*100):0;
+      const d = parseDateStr(ds);
+      const dayName = DAYS[d.getDay()];
+      const sched = SCHEDULE[dayName] || [];
+      const taken = byDate[ds];
+      const takeable = sched.flatMap(s => s.items.filter(it => !s.skip.includes(it)));
+      const doneCount = takeable.filter(it => taken.has(it)).length;
+      const total = takeable.length;
+      const pct = total ? Math.round(doneCount/total*100) : 0;
 
-      const dayEl=document.createElement('div'); dayEl.className='log-day';
-      const hdr=document.createElement('div'); hdr.className='log-day-header';
-      const left=document.createElement('div'); left.className='log-day-left';
-      const dn=document.createElement('span'); dn.className='log-day-name'; dn.textContent=dayName; left.appendChild(dn);
-      const dd=document.createElement('span'); dd.className='log-day-date'; dd.textContent=d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); left.appendChild(dd);
-      const pe=document.createElement('span'); pe.className='log-pct'+(pct===0?' zero':''); pe.textContent=pct+'%';
+      const dayEl = document.createElement('div');
+      dayEl.style.cssText = 'background:#1a1a1c;border-radius:14px;border:1px solid rgba(255,255,255,0.08);margin-bottom:8px;overflow:hidden;';
+
+      const hdr = document.createElement('div');
+      hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;';
+
+      const left = document.createElement('div');
+      left.style.cssText = 'display:flex;align-items:center;gap:10px;';
+
+      const dn = document.createElement('span');
+      dn.style.cssText = 'font-size:14px;font-weight:500;color:#f0f0ee;';
+      dn.textContent = dayName;
+
+      const dd = document.createElement('span');
+      dd.style.cssText = 'font-family:\'DM Mono\',monospace;font-size:11px;color:rgba(240,240,238,0.45);';
+      dd.textContent = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+      left.appendChild(dn); left.appendChild(dd);
+
+      const pe = document.createElement('span');
+      pe.style.cssText = 'font-family:\'DM Mono\',monospace;font-size:12px;color:' + (pct===0?'rgba(240,240,238,0.45)':'#c8f542') + ';';
+      pe.textContent = pct + '%';
+
       hdr.appendChild(left); hdr.appendChild(pe);
 
-      const body=document.createElement('div'); body.className='log-body';
+      const body = document.createElement('div');
+      body.style.cssText = 'display:none;padding:0 14px 12px;border-top:1px solid rgba(255,255,255,0.08);';
+
       sched.forEach(section => {
-        const tbl=section.items.filter(it=>!section.skip.includes(it));
-        if(!tbl.length) return;
-        const sl=document.createElement('div'); sl.className='log-section-label'; sl.textContent=section.time; body.appendChild(sl);
-        const pr=document.createElement('div'); pr.className='log-pills';
+        const tbl = section.items.filter(it => !section.skip.includes(it));
+        if (!tbl.length) return;
+
+        const sl = document.createElement('div');
+        sl.style.cssText = 'font-family:\'DM Mono\',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(240,240,238,0.45);margin:10px 0 6px;';
+        sl.textContent = section.time;
+        body.appendChild(sl);
+
+        const pr = document.createElement('div');
+        pr.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;';
+
         tbl.forEach(item => {
-          const p=document.createElement('span'); p.className='log-pill'+(taken.has(item)?' taken':''); p.textContent=item; pr.appendChild(p);
+          const p = document.createElement('span');
+          const isTaken = taken.has(item);
+          p.style.cssText = 'padding:4px 10px;border-radius:40px;font-size:12px;border:1px solid ' + (isTaken?'#c8f542':'rgba(255,255,255,0.08)') + ';color:' + (isTaken?'#c8f542':'rgba(240,240,238,0.45)') + ';background:' + (isTaken?'rgba(200,245,66,0.12)':'transparent') + ';';
+          p.textContent = item;
+          pr.appendChild(p);
         });
         body.appendChild(pr);
       });
 
-      hdr.onclick=()=>body.classList.toggle('open');
+      hdr.onclick = () => { body.style.display = body.style.display === 'block' ? 'none' : 'block'; };
       dayEl.appendChild(hdr); dayEl.appendChild(body); monthEl.appendChild(dayEl);
     });
     c.appendChild(monthEl);
