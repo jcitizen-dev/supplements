@@ -262,10 +262,10 @@ let currentView = 'today';
 function showView(v) {
   currentView = v;
   document.getElementById('today-view').style.display = v==='today'?'':'none';
-  document.getElementById('log-view').style.display = v==='log'?'':'none';
+  document.getElementById('log-view').style.display = v==='log'?'block':'none';
   document.getElementById('nav-today').classList.toggle('active', v==='today');
   document.getElementById('nav-log').classList.toggle('active', v==='log');
-  if (v==='log') renderLog();
+  if (v==='log') { document.getElementById('log-content').innerHTML='<p style="color:#f0f0ee;padding:16px;font-size:13px;">loading... checked: '+checked.size+'</p>'; renderLog(); }
 }
 
 // --- Render today ---
