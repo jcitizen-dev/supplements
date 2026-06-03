@@ -194,7 +194,8 @@ function dateStr(d) {
 function parseDateStr(s) { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
 function dateForDayIndex(i) {
   const now = new Date();
-  const diff = (now.getDay() - i + 7) % 7;
+  // diff > 0 → past day this week, 0 → today, diff < 0 → upcoming day this week
+  const diff = now.getDay() - i;
   const d = new Date(now); d.setDate(now.getDate()-diff); return d;
 }
 
